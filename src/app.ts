@@ -2,6 +2,7 @@ import Fastify, { type FastifyError } from 'fastify'
 import { config } from './config.js'
 import { AppError } from './lib/errors.js'
 import { connectDb } from './db/client.js'
+import oauthPlugin from './plugins/oauth.js'
 
 export async function buildApp() {
   const app = Fastify({
@@ -19,7 +20,9 @@ export async function buildApp() {
     genReqId: () => crypto.randomUUID(),
   })
 
-  await connectDb();
+  await connectDb()
+
+  await app.register(oauthPlugin)
 
   app.setErrorHandler((error, request, reply) => {
     if ((error as FastifyError).validation) {
