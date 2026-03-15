@@ -30,6 +30,7 @@ export const config = {
 
   // Database (Neon)
   databaseUrl: require('DATABASE_URL'),
+  testDatabaseUrl: optional('TEST_DATABASE_URL', ''),
 
   // Redis (Upstash)
   redisUrl: require('REDIS_URL'),

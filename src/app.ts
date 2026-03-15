@@ -1,8 +1,9 @@
 import Fastify, { type FastifyError } from 'fastify'
 import { config } from './config.js'
 import { AppError } from './lib/errors.js'
+import { connectDb } from './db/client.js'
 
-export function buildApp() {
+export async function buildApp() {
   const app = Fastify({
     logger: {
       level: config.isProduction ? 'info' : 'debug',
@@ -18,7 +19,8 @@ export function buildApp() {
     genReqId: () => crypto.randomUUID(),
   })
 
-  // ─── Global error handler ───────────────────────────────────────────────────
+  await connectDb();
+
   app.setErrorHandler((error, request, reply) => {
     if ((error as FastifyError).validation) {
       return reply.status(400).send({
@@ -47,7 +49,6 @@ export function buildApp() {
     })
   })
 
-  // ─── 404 handler ───────────────────────────────────────────────────────────
   app.setNotFoundHandler((request, reply) => {
     reply.status(404).send({
       error: {
@@ -57,7 +58,6 @@ export function buildApp() {
     })
   })
 
-  // ─── Health endpoint ────────────────────────────────────────────────────────
   app.get('/health', async () => ({
     status: 'ok',
     timestamp: new Date().toISOString(),

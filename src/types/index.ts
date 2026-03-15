@@ -1,5 +1,3 @@
-// ─── Domain types (mirror DB rows) ───────────────────────────────────────────
-
 export interface User {
   id: string
   googleId: string
@@ -31,14 +29,21 @@ export interface Follow {
 }
 
 export interface FeedItem {
-  id: string
-  ownerUserId: string
-  videoId: string
+  id: string,
   cursorTs: Date
-  createdAt: Date
+  video: Video
+  savedBy: Pick<User, 'id' | 'handle' | 'displayName' | 'avatarUrl'>
 }
 
-// ─── API response shapes ──────────────────────────────────────────────────────
+export interface FeedPage {
+  items: FeedItem[]
+  nextCursor: string | null  // null means no more pages
+}
+
+export interface SuggestedUser {
+  user: User
+  score: number
+}
 
 export interface ApiError {
   error: {
@@ -47,14 +52,10 @@ export interface ApiError {
   }
 }
 
-// ─── JWT payload ─────────────────────────────────────────────────────────────
-
 export interface JwtPayload {
   sub: string       // user.id
   handle: string
 }
-
-// ─── BullMQ job data ─────────────────────────────────────────────────────────
 
 export interface ScrapeJobData {
   videoId: string   // reelmark DB id (uuid)
