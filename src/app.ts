@@ -3,8 +3,9 @@ import { config } from './config.js'
 import { AppError } from './lib/errors.js'
 import { connectDb } from './db/client.js'
 import oauthPlugin from './plugins/oauth.js'
-import authenticatePlugin, { authenticate } from './plugins/authenticate.js'
+import authenticatePlugin from './plugins/authenticate.js'
 import authRoutes from './routes/auth.js'
+import videosRoutes from './routes/videos.js'
 
 export async function buildApp() {
   const app = Fastify({
@@ -27,6 +28,7 @@ export async function buildApp() {
   await app.register(oauthPlugin)
   await app.register(authenticatePlugin)
   await app.register(authRoutes)
+  await app.register(videosRoutes)
 
   app.setErrorHandler((error, request, reply) => {
     if ((error as FastifyError).validation) {
