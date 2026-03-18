@@ -6,6 +6,7 @@ import oauthPlugin from './plugins/oauth.js'
 import authenticatePlugin from './plugins/authenticate.js'
 import authRoutes from './routes/auth.js'
 import videosRoutes from './routes/videos.js'
+import usersRoutes from './routes/users.js'
 
 export async function buildApp() {
   const app = Fastify({
@@ -29,6 +30,7 @@ export async function buildApp() {
   await app.register(authenticatePlugin)
   await app.register(authRoutes)
   await app.register(videosRoutes)
+  await app.register(usersRoutes)
 
   app.setErrorHandler((error, request, reply) => {
     if ((error as FastifyError).validation) {
