@@ -9,7 +9,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "worker:start": "node dist/workers/placeholder.js",
-    "migrate": "tsx migrations/run.ts"
+    "migrate": "tsx migrations/run.ts",
+    "seed": "tsx seed/dev.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
