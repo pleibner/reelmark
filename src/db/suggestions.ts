@@ -19,7 +19,11 @@ export async function getSuggestedUsers(
      scores AS (
        SELECT
          u.id AS user_id,
-         COALESCE(SUM(CASE WHEN v.youtube_id = mv.youtube_id THEN 3 ELSE 1 END), 0) AS score
+         SUM(CASE
+           WHEN v.youtube_id = mv.youtube_id THEN 3
+           WHEN v.channel_name IS NOT NULL AND v.channel_name = mv.channel_name THEN 1
+           ELSE 0
+         END) AS score
        FROM users u
        LEFT JOIN videos v ON v.user_id = u.id
        LEFT JOIN my_videos mv
