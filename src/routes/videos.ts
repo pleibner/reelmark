@@ -5,6 +5,7 @@ import { ValidationError } from '../lib/errors.js'
 import { extractYoutubeId } from '../lib/youtube.js'
 import { insertVideo as createVideo, deleteVideo } from '../db/videos.js'
 import { fanoutToFollowers } from '../db/feed.js'
+import { scrapeQueue } from '../lib/queue.js'
 
 interface CreateVideoBody {
   url: string
@@ -42,6 +43,12 @@ async function videosRoutes(app: FastifyInstance) {
       })
 
       await fanoutToFollowers(video.id, video.userId, video.createdAt)
+
+      try {
+        await scrapeQueue.add('scrape', { videoId: video.id, youtubeId: video.youtubeId })
+      } catch (err) {
+        request.log.error({ err }, 'Failed to enqueue scrape job')
+      }
 
       return reply.status(201).send(video)
     }
