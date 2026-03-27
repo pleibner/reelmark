@@ -110,6 +110,28 @@ export async function fetchSuggestions(limit = 50): Promise<SuggestionEntry[]> {
   return res.json() as Promise<SuggestionEntry[]>
 }
 
+export async function saveVideo(url: string): Promise<void> {
+  const token = getStoredToken()
+  if (!token) {
+    throw new Error('Not signed in')
+  }
+  const res = await fetch(`${getApiBase()}/videos`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ url: url.trim() }),
+  })
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as
+      | { error?: { message?: string } }
+      | null
+    const msg = body?.error?.message ?? `Request failed (${res.status})`
+    throw new Error(msg)
+  }
+}
+
 export async function fetchFeed(
   cursor?: string | null,
   limit = 20,
