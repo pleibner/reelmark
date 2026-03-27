@@ -3,8 +3,13 @@
   "version": "0.1.0",
   "description": "Save YouTube videos and share them with followers",
   "type": "module",
+  "workspaces": [
+    "client"
+  ],
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "client:dev": "npm run dev -w reelmark-client",
+    "client:build": "npm run build -w reelmark-client",
     "worker:dev": "tsx watch src/workers/scrape.ts",
     "build": "tsc",
     "start": "node dist/server.js",
