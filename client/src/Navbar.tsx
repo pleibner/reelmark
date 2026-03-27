@@ -1,11 +1,13 @@
 import { useState, type SyntheticEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useFeedRefresh } from './FeedRefreshContext'
 import { saveVideo } from './lib/api'
 import { fireSaveCelebration } from './lib/saveCelebration'
 import { clearStoredToken, getStoredToken, getViewerHandle } from './lib/auth'
 
 export function Navbar() {
   const navigate = useNavigate()
+  const { bumpFeed } = useFeedRefresh()
   const token = getStoredToken()
   const [videoUrl, setVideoUrl] = useState('')
   const [saveBusy, setSaveBusy] = useState(false)
@@ -31,6 +33,7 @@ export function Navbar() {
       await saveVideo(url)
       setVideoUrl('')
       fireSaveCelebration()
+      bumpFeed()
     } catch (err: unknown) {
       setSaveError(
         err instanceof Error ? err.message : 'Could not save video',

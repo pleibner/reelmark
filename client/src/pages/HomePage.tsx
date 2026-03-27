@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { useFeedRefresh } from '../FeedRefreshContext'
 import { type FeedPageResponse, fetchFeed } from '../lib/api'
 
 function formatSavedAt(iso: string): string {
@@ -15,11 +16,14 @@ function videoTitle(title: string | null | undefined): string {
 }
 
 export function HomePage() {
+  const { feedEpoch } = useFeedRefresh()
   const [feedPage, setFeedPage] = useState<FeedPageResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
+    setFeedPage(null)
+    setError(null)
     fetchFeed()
       .then((page) => {
         if (!cancelled) setFeedPage(page)
@@ -32,7 +36,7 @@ export function HomePage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [feedEpoch])
 
   let feedBody: ReactNode
   if (error) {

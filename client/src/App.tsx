@@ -1,4 +1,5 @@
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { FeedRefreshProvider } from './FeedRefreshContext'
 import { Navbar } from './Navbar'
 import { ProtectedRoute } from './ProtectedRoute'
 import { AuthCallbackPage } from './pages/AuthCallbackPage'
@@ -17,12 +18,14 @@ function LoginRoute() {
 
 function AppLayout() {
   return (
-    <div className="app-shell">
-      <Navbar />
-      <main className="app-main">
-        <Outlet />
-      </main>
-    </div>
+    <FeedRefreshProvider>
+      <div className="app-shell">
+        <Navbar />
+        <main className="app-main">
+          <Outlet />
+        </main>
+      </div>
+    </FeedRefreshProvider>
   )
 }
 

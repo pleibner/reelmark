@@ -6,6 +6,7 @@ export interface FeedCursor {
   id: string
 }
 
+/** Adds the video to each follower's feed and to the saver's own feed. */
 export async function fanoutToFollowers(
   videoId: string,
   userId: string,
@@ -13,9 +14,11 @@ export async function fanoutToFollowers(
 ): Promise<void> {
   await pool.query(
     `INSERT INTO feed_items (owner_user_id, video_id, cursor_ts)
-     SELECT follower_id, $1, $2
+     SELECT follower_id, $1::uuid, $2::timestamptz
      FROM follows
-     WHERE followee_id = $3
+     WHERE followee_id = $3::uuid
+     UNION ALL
+     SELECT $3::uuid, $1::uuid, $2::timestamptz
      ON CONFLICT (owner_user_id, video_id) DO NOTHING`,
     [videoId, createdAt, userId]
   )
