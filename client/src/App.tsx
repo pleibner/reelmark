@@ -1,24 +1,11 @@
-import type { CSSProperties } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { Navbar } from './Navbar'
 import { ProtectedRoute } from './ProtectedRoute'
 import { AuthCallbackPage } from './pages/AuthCallbackPage'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
+import { ProfilePage } from './pages/ProfilePage'
 import { getStoredToken } from './lib/auth'
-
-const appShell: CSSProperties = {
-  minHeight: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-}
-
-const main: CSSProperties = {
-  flex: 1,
-  display: 'flex',
-  flexDirection: 'column',
-  minHeight: 0,
-}
 
 function LoginRoute() {
   if (getStoredToken()) {
@@ -29,9 +16,9 @@ function LoginRoute() {
 
 function AppLayout() {
   return (
-    <div style={appShell}>
+    <div className="app-shell">
       <Navbar />
-      <main style={main}>
+      <main className="app-main">
         <Outlet />
       </main>
     </div>
@@ -49,6 +36,14 @@ export function App() {
           element={
             <ProtectedRoute>
               <HomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/users/:handle"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />

@@ -1,16 +1,6 @@
-import { useEffect, type CSSProperties } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { setStoredToken } from '../lib/auth'
-
-const shell: CSSProperties = {
-  flex: 1,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '1.5rem',
-  color: '#666',
-  fontSize: '0.875rem',
-}
 
 export function AuthCallbackPage() {
   const [params] = useSearchParams()
@@ -27,5 +17,9 @@ export function AuthCallbackPage() {
     navigate('/login', { replace: true })
   }, [params, navigate])
 
-  return <div style={shell}>Signing in…</div>
+  return (
+    <div className="page page--centered">
+      <p className="text-muted text-muted--flush">Signing in…</p>
+    </div>
+  )
 }

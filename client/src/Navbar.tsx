@@ -1,40 +1,13 @@
-import type { CSSProperties } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { clearStoredToken, getStoredToken } from './lib/auth'
-
-const bar: CSSProperties = {
-  flexShrink: 0,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  padding: '0.75rem 1.25rem',
-  borderBottom: '1px solid #e8e8e8',
-  background: '#fff',
-}
-
-const brand: CSSProperties = {
-  color: '#111',
-  fontWeight: 600,
-  fontSize: '1rem',
-  letterSpacing: '-0.02em',
-  textDecoration: 'none',
-}
-
-const logoutLink: CSSProperties = {
-  color: '#111',
-  fontSize: '0.875rem',
-  textDecoration: 'underline',
-  textUnderlineOffset: '0.15em',
-  cursor: 'pointer',
-  background: 'none',
-  border: 'none',
-  font: 'inherit',
-  padding: 0,
-}
+import { clearStoredToken, getStoredToken, getViewerHandle } from './lib/auth'
 
 export function Navbar() {
   const navigate = useNavigate()
   const token = getStoredToken()
+  const viewerProfilePath = (() => {
+    const h = getViewerHandle()
+    return h ? `/users/${encodeURIComponent(h)}` : null
+  })()
 
   function logout() {
     clearStoredToken()
@@ -42,14 +15,21 @@ export function Navbar() {
   }
 
   return (
-    <header style={bar}>
-      <Link to={token ? '/' : '/login'} style={brand}>
+    <header className="nav">
+      <Link to={token ? '/' : '/login'} className="nav__brand">
         Reelmark
       </Link>
       {token ? (
-        <button type="button" onClick={logout} style={logoutLink}>
-          Log out
-        </button>
+        <div className="nav__actions">
+          {viewerProfilePath ? (
+            <Link to={viewerProfilePath} className="btn-text">
+              Profile
+            </Link>
+          ) : null}
+          <button type="button" onClick={logout} className="btn-text">
+            Log out
+          </button>
+        </div>
       ) : null}
     </header>
   )

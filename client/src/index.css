@@ -4,6 +4,41 @@
   box-sizing: border-box;
 }
 
+:root {
+  /* Surfaces */
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-subtle: #f5f5f5;
+
+  /* Text */
+  --fg: #111111;
+  --fg-muted: #737373;
+  --link: #111111;
+
+  /* Lines */
+  --border: #e5e5e5;
+  --border-strong: #cccccc;
+
+  /* Layout */
+  --layout-max-width: 42rem;
+  --page-gutter: clamp(1rem, 4vw, 1.75rem);
+
+  /* Focus ring (neutral, theme-friendly) */
+  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--fg);
+
+  /* Type scale */
+  --text-nav: 0.875rem;
+  --text-body: 0.875rem;
+  --text-section-label: 0.75rem;
+  --text-page-title: 1.125rem;
+  --text-welcome: 1.25rem;
+  --letter-tight: -0.02em;
+  --letter-section: 0.06em;
+
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+}
+
 html,
 body,
 #root {
@@ -17,8 +52,286 @@ body {
     -apple-system,
     'Segoe UI',
     sans-serif;
-  background: #fff;
-  color: #111;
+  background: var(--bg);
+  color: var(--fg);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+}
+
+/* ----- App shell ----- */
+
+.app-shell {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ----- Navbar ----- */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem var(--page-gutter);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav__brand {
+  color: var(--fg);
+  font-weight: var(--font-weight-semibold);
+  font-size: 1rem;
+  letter-spacing: var(--letter-tight);
+  text-decoration: none;
+}
+
+.nav__brand:hover {
+  opacity: 0.75;
+}
+
+.nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 1.125rem;
+}
+
+/* ----- Focus (links & buttons) ----- */
+
+a:focus-visible,
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 2px;
+}
+
+/* Text control: use for nav actions (button or Link as <a>) */
+.btn-text {
+  display: inline-block;
+  color: var(--link);
+  font-size: var(--text-nav);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font: inherit;
+  padding: 0.25rem 0;
+}
+
+button.btn-text {
+  text-align: inherit;
+}
+
+.btn-text:hover {
+  opacity: 0.72;
+}
+
+.btn-cta {
+  display: inline-block;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.9375rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+}
+
+.btn-cta:hover {
+  border-color: var(--fg-muted);
+}
+
+/* ----- Page layouts ----- */
+
+.page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--page-gutter);
+}
+
+.page--centered {
+  align-items: center;
+  justify-content: center;
+}
+
+.page--narrow {
+  max-width: var(--layout-max-width);
+  margin-inline: auto;
+  width: 100%;
+}
+
+.page-title {
+  margin: 0 0 1.25rem;
+  font-size: var(--text-page-title);
+  font-weight: var(--font-weight-semibold);
+  color: var(--fg);
+  letter-spacing: var(--letter-tight);
+}
+
+.page-title--welcome {
+  font-size: var(--text-welcome);
+  font-weight: var(--font-weight-medium);
+}
+
+.text-muted {
+  color: var(--fg-muted);
+  font-size: var(--text-body);
+}
+
+.text-muted--note {
+  margin: 0 0 1rem;
+}
+
+.text-muted--flush {
+  margin: 0;
+}
+
+.text-error {
+  margin: 0;
+  color: var(--fg);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ----- Profile & sections ----- */
+
+.section-block {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.section-block:first-of-type {
+  margin-top: 1.75rem;
+}
+
+.section-title {
+  margin: 0 0 0.875rem;
+  font-size: var(--text-section-label);
+  font-weight: var(--font-weight-semibold);
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-section);
+}
+
+.field {
+  margin-bottom: 0.875rem;
+  font-size: var(--text-body);
+}
+
+.field__label {
+  color: var(--fg-muted);
+  margin-bottom: 0.2rem;
+  font-size: var(--text-body);
+}
+
+.field__value {
+  color: var(--fg);
+  margin: 0;
+}
+
+.avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+}
+
+.link-external {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.link-external:hover {
+  opacity: 0.72;
+}
+
+/* ----- Video list ----- */
+
+.video-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.video-row {
+  display: flex;
+  gap: 0.875rem;
+  align-items: flex-start;
+  margin-bottom: 0.875rem;
+  font-size: var(--text-body);
+  min-height: 54px;
+}
+
+.video-row:last-child {
+  margin-bottom: 0;
+}
+
+.video-thumb {
+  width: 96px;
+  height: 54px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.video-thumb--placeholder {
+  background: var(--surface-subtle);
+}
+
+.video-row__body {
+  flex: 1;
+  min-width: 0;
+  padding-top: 0.125rem;
+}
+
+/* ----- Person list ----- */
+
+.person-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.person-row {
+  margin-bottom: 0.5rem;
+  font-size: var(--text-body);
+}
+
+.person-row:last-child {
+  margin-bottom: 0;
+}
+
+.person-link {
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.person-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.person-link .person-handle {
+  color: var(--fg-muted);
 }

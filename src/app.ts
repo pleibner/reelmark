@@ -1,4 +1,5 @@
 import Fastify, { type FastifyError } from 'fastify'
+import fastifyCors from '@fastify/cors'
 import { config } from './config.js'
 import { AppError } from './lib/errors.js'
 import { connectDb } from './db/client.js'
@@ -26,6 +27,11 @@ export async function buildApp() {
   })
 
   await connectDb()
+
+  await app.register(fastifyCors, {
+    origin: config.appUrl,
+    allowedHeaders: ['Authorization', 'Content-Type'],
+  })
 
   await app.register(oauthPlugin)
   await app.register(authenticatePlugin)

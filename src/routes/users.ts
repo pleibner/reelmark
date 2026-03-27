@@ -5,7 +5,14 @@ import { NotFoundError, ForbiddenError } from '../lib/errors.js'
 import { getByHandle } from '../db/users.js'
 import { getSuggestedUsers } from '../db/suggestions.js'
 import { getByUserId } from '../db/videos.js'
-import { insertFollow, deleteFollow } from '../db/follows.js'
+import {
+  insertFollow,
+  deleteFollow,
+  listFollowees,
+  listFollowers,
+} from '../db/follows.js'
+
+const profileVideosLimit = 200
 
 async function usersRoutes(app: FastifyInstance) {
   // Register GET /users/suggestions before GET /users/:handle so "suggestions" is not matched as a handle
@@ -51,8 +58,26 @@ async function usersRoutes(app: FastifyInstance) {
       if (user === null) {
         throw new NotFoundError('User not found')
       }
-      const videos = await getByUserId(user.id)
-      return { user, videos }
+      const viewerId = request.user.sub
+      const isSelf = user.id === viewerId
+      const [videos, followers, following] = await Promise.all([
+        getByUserId(user.id, profileVideosLimit, 0),
+        listFollowers(user.id),
+        listFollowees(user.id),
+      ])
+      return {
+        user: {
+          id: user.id,
+          handle: user.handle,
+          displayName: user.displayName,
+          avatarUrl: user.avatarUrl,
+          createdAt: user.createdAt,
+          ...(isSelf ? { email: user.email } : {}),
+        },
+        videos,
+        followers,
+        following,
+      }
     }
   )
 

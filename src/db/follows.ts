@@ -1,6 +1,46 @@
 import { pool } from './client.js'
 import { ConflictError, NotFoundError } from '../lib/errors.js'
 
+export type FollowListUser = {
+  id: string
+  handle: string
+  displayName: string
+  avatarUrl: string | null
+}
+
+function rowToFollowListUser(row: Record<string, unknown>): FollowListUser {
+  return {
+    id: row.id as string,
+    handle: row.handle as string,
+    displayName: row.display_name as string,
+    avatarUrl: row.avatar_url as string | null,
+  }
+}
+
+export async function listFollowers(followeeId: string): Promise<FollowListUser[]> {
+  const { rows } = await pool.query(
+    `SELECT u.id, u.handle, u.display_name, u.avatar_url
+     FROM follows f
+     JOIN users u ON u.id = f.follower_id
+     WHERE f.followee_id = $1
+     ORDER BY u.display_name ASC`,
+    [followeeId],
+  )
+  return rows.map((r) => rowToFollowListUser(r))
+}
+
+export async function listFollowees(followerId: string): Promise<FollowListUser[]> {
+  const { rows } = await pool.query(
+    `SELECT u.id, u.handle, u.display_name, u.avatar_url
+     FROM follows f
+     JOIN users u ON u.id = f.followee_id
+     WHERE f.follower_id = $1
+     ORDER BY u.display_name ASC`,
+    [followerId],
+  )
+  return rows.map((r) => rowToFollowListUser(r))
+}
+
 export async function insertFollow(
   followerId: string,
   followeeId: string
