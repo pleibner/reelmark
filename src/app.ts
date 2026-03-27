@@ -31,6 +31,7 @@ export async function buildApp() {
   await app.register(fastifyCors, {
     origin: config.appUrl,
     allowedHeaders: ['Authorization', 'Content-Type'],
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
   })
 
   await app.register(oauthPlugin)

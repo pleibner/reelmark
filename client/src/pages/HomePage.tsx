@@ -101,12 +101,23 @@ export function HomePage() {
           void loadMoreStable()
         }
       },
-      { root, rootMargin: '120px', threshold: 0 },
+      { root, rootMargin: '320px', threshold: 0 },
     )
 
     observer.observe(target)
+    const flushVisible = () => {
+      for (const entry of observer.takeRecords()) {
+        if (entry.isIntersecting) {
+          void loadMoreStable()
+          return
+        }
+      }
+    }
+    queueMicrotask(flushVisible)
+    requestAnimationFrame(flushVisible)
+
     return () => observer.disconnect()
-  }, [initialLoading, nextCursor, items.length, loadMoreStable])
+  }, [initialLoading, nextCursor, loadMoreStable])
 
   let feedBody: ReactNode
   if (error && items.length === 0) {

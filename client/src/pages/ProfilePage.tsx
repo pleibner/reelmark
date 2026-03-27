@@ -7,8 +7,10 @@ import {
   unfollowUser,
 } from '../lib/api'
 import { getViewerHandle } from '../lib/auth'
+import { useFeedRefresh } from '../FeedRefreshContext'
 
 export function ProfilePage() {
+  const { bumpFeed } = useFeedRefresh()
   const { handle: handleParam } = useParams<{ handle: string }>()
   const handle = handleParam?.trim() ?? ''
   const [data, setData] = useState<UserProfileResponse | null>(null)
@@ -75,6 +77,7 @@ export function ProfilePage() {
     try {
       await followUser(user.handle)
       setFollowing(true)
+      bumpFeed()
     } catch (e: unknown) {
       setFollowActionError(
         e instanceof Error ? e.message : 'Could not follow user',
@@ -90,6 +93,7 @@ export function ProfilePage() {
     try {
       await unfollowUser(user.handle)
       setFollowing(false)
+      bumpFeed()
     } catch (e: unknown) {
       setFollowActionError(
         e instanceof Error ? e.message : 'Could not unfollow user',

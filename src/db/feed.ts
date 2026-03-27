@@ -1,3 +1,4 @@
+import type { PoolClient } from 'pg'
 import type { FeedPage } from '../types/index.js'
 import { pool } from './client.js'
 
@@ -24,19 +25,61 @@ export async function fanoutToFollowers(
   )
 }
 
+/** When A follows B, add every video B has saved into A's feed (same cursor_ts as fanout). Use inside the same transaction as the follow insert. */
+export async function backfillFeedForNewFollow(
+  client: PoolClient,
+  followerUserId: string,
+  followeeUserId: string,
+): Promise<void> {
+  await client.query(
+    `INSERT INTO feed_items (owner_user_id, video_id, cursor_ts)
+     SELECT $1::uuid, v.id, v.created_at
+     FROM videos v
+     WHERE v.user_id = $2::uuid
+     ON CONFLICT (owner_user_id, video_id) DO NOTHING`,
+    [followerUserId, followeeUserId],
+  )
+}
+
+/** When A unfollows B, remove B's videos from A's feed only. Use inside the same transaction as the follow delete. */
+export async function cleanUpFeedOnUnfollow(
+  client: PoolClient,
+  followerUserId: string,
+  followeeUserId: string,
+): Promise<void> {
+  await client.query(
+    `DELETE FROM feed_items fi
+     USING videos v
+     WHERE fi.video_id = v.id
+       AND fi.owner_user_id = $1::uuid
+       AND v.user_id = $2::uuid`,
+    [followerUserId, followeeUserId],
+  )
+}
+
+/** Keyset cursor: `${fi.cursor_ts::text}_${feed_item_id}`. Last `_` splits PG’s canonical ts text from uuid. */
+function parseFeedCursor(cursor: string): { cursorTs: string; cursorId: string } | null {
+  const i = cursor.lastIndexOf('_')
+  if (i <= 0 || i >= cursor.length - 1) return null
+  return { cursorTs: cursor.slice(0, i), cursorId: cursor.slice(i + 1) }
+}
+
 export async function getFeedPage(
   userId: string,
   cursor: string | null,
   limit = 20
 ): Promise<FeedPage> {
-  const cursorParts = cursor ? cursor.split('_') : null
-  const cursorTs = cursorParts ? cursorParts[0] : null
-  const cursorId = cursorParts ? cursorParts[1] : null
+  const parsed = cursor ? parseFeedCursor(cursor) : null
+  const cursorTs = parsed?.cursorTs ?? null
+  const cursorId = parsed?.cursorId ?? null
+
+  const pageSize = Math.min(50, Math.max(1, Number(limit) || 20))
 
   const { rows } = await pool.query(
     `SELECT
        fi.id            AS feed_item_id,
        fi.cursor_ts,
+       fi.cursor_ts::text AS cursor_ts_db_text,
        v.id             AS video_id,
        v.user_id,
        v.youtube_id,
@@ -63,20 +106,20 @@ export async function getFeedPage(
        )
      ORDER BY fi.cursor_ts DESC, fi.id DESC
      LIMIT $4`,
-    [userId, cursorTs, cursorId, limit + 1]
+    [userId, cursorTs, cursorId, pageSize + 1]
   )
 
-  const hasNextPage = rows.length > limit
-  const items = hasNextPage ? rows.slice(0, limit) : rows
+  const hasNextPage = rows.length > pageSize
+  const pageRows = hasNextPage ? rows.slice(0, pageSize) : rows
 
-  const lastItem = items[items.length - 1]
-  const nextCursor = hasNextPage && lastItem
-    ? `${(lastItem.cursor_ts as Date).toISOString()}_${lastItem.feed_item_id}`
-    : null
-
+  const lastRow = pageRows.at(-1)
+  const nextCursor =
+    hasNextPage && lastRow
+      ? `${lastRow.cursor_ts_db_text as string}_${lastRow.feed_item_id as string}`
+      : null
 
   return {
-    items: items.map(row => ({
+    items: pageRows.map(row => ({
       id: row.feed_item_id as string,
       cursorTs: row.cursor_ts as Date,
       video: {
