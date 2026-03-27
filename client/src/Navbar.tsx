@@ -21,6 +21,9 @@ export function Navbar() {
       </Link>
       {token ? (
         <div className="nav__actions">
+          <Link to="/" className="btn-text">
+            Feed
+          </Link>
           {viewerProfilePath ? (
             <Link to={viewerProfilePath} className="btn-text">
               Profile

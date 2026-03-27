@@ -37,6 +37,44 @@ export type UserProfileResponse = {
   following: FollowListUser[]
 }
 
+export type FeedItem = {
+  id: string
+  cursorTs: string
+  video: ProfileVideo
+  savedBy: FollowListUser
+}
+
+export type FeedPageResponse = {
+  items: FeedItem[]
+  nextCursor: string | null
+}
+
+export async function fetchFeed(
+  cursor?: string | null,
+  limit = 20,
+): Promise<FeedPageResponse> {
+  const token = getStoredToken()
+  if (!token) {
+    throw new Error('Not signed in')
+  }
+  const params = new URLSearchParams()
+  params.set('limit', String(limit))
+  if (cursor) {
+    params.set('cursor', cursor)
+  }
+  const res = await fetch(`${getApiBase()}/feed?${params}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as
+      | { error?: { message?: string } }
+      | null
+    const msg = body?.error?.message ?? `Request failed (${res.status})`
+    throw new Error(msg)
+  }
+  return res.json() as Promise<FeedPageResponse>
+}
+
 export async function fetchUserByHandle(
   handle: string,
 ): Promise<UserProfileResponse> {

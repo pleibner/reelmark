@@ -31,7 +31,6 @@
   --text-body: 0.875rem;
   --text-section-label: 0.75rem;
   --text-page-title: 1.125rem;
-  --text-welcome: 1.25rem;
   --letter-tight: -0.02em;
   --letter-section: 0.06em;
 
@@ -184,11 +183,6 @@ button.btn-text {
   letter-spacing: var(--letter-tight);
 }
 
-.page-title--welcome {
-  font-size: var(--text-welcome);
-  font-weight: var(--font-weight-medium);
-}
-
 .text-muted {
   color: var(--fg-muted);
   font-size: var(--text-body);
@@ -334,4 +328,72 @@ button.btn-text {
 
 .person-link .person-handle {
   color: var(--fg-muted);
+}
+
+/* ----- Home feed ----- */
+
+.home {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: var(--page-gutter);
+  max-width: var(--layout-max-width);
+  margin-inline: auto;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.feed-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.feed-card {
+  margin-bottom: 2rem;
+}
+
+.feed-card:last-child {
+  margin-bottom: 0;
+}
+
+.feed-embed {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--surface-subtle);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.feed-embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.feed-meta {
+  margin-top: 0.75rem;
+  font-size: var(--text-body);
+  color: var(--fg-muted);
+  line-height: 1.45;
+}
+
+.feed-meta strong,
+.feed-meta .feed-meta__name {
+  color: var(--fg);
+  font-weight: var(--font-weight-medium);
+}
+
+.feed-meta a.feed-meta__name {
+  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.feed-meta a.feed-meta__name:hover {
+  opacity: 0.75;
 }
