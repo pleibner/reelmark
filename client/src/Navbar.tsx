@@ -24,6 +24,9 @@ export function Navbar() {
           <Link to="/" className="btn-text">
             Feed
           </Link>
+          <Link to="/discover" className="btn-text">
+            Discover
+          </Link>
           {viewerProfilePath ? (
             <Link to={viewerProfilePath} className="btn-text">
               Profile

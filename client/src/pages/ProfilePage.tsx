@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
-import { type UserProfileResponse, fetchUserByHandle } from '../lib/api'
+import {
+  type UserProfileResponse,
+  fetchUserByHandle,
+  followUser,
+  unfollowUser,
+} from '../lib/api'
 import { getViewerHandle } from '../lib/auth'
 
 export function ProfilePage() {
@@ -8,6 +13,11 @@ export function ProfilePage() {
   const handle = handleParam?.trim() ?? ''
   const [data, setData] = useState<UserProfileResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [following, setFollowing] = useState(false)
+  const [followBusy, setFollowBusy] = useState(false)
+  const [followActionError, setFollowActionError] = useState<string | null>(
+    null,
+  )
 
   useEffect(() => {
     if (!handle) return
@@ -27,6 +37,13 @@ export function ProfilePage() {
       cancelled = true
     }
   }, [handle])
+
+  useEffect(() => {
+    if (!data) return
+    const self = getViewerHandle() === data.user.handle
+    setFollowing(self ? false : Boolean(data.isFollowing))
+    setFollowActionError(null)
+  }, [data])
 
   if (!handle) {
     return <Navigate to="/" replace />
@@ -48,9 +65,39 @@ export function ProfilePage() {
     )
   }
 
-  const { user, videos, followers, following } = data
+  const { user, videos, followers, following: theirFollowing } = data
   const viewerHandle = getViewerHandle()
   const isSelf = viewerHandle === user.handle
+
+  async function handleFollow() {
+    setFollowBusy(true)
+    setFollowActionError(null)
+    try {
+      await followUser(user.handle)
+      setFollowing(true)
+    } catch (e: unknown) {
+      setFollowActionError(
+        e instanceof Error ? e.message : 'Could not follow user',
+      )
+    } finally {
+      setFollowBusy(false)
+    }
+  }
+
+  async function handleUnfollow() {
+    setFollowBusy(true)
+    setFollowActionError(null)
+    try {
+      await unfollowUser(user.handle)
+      setFollowing(false)
+    } catch (e: unknown) {
+      setFollowActionError(
+        e instanceof Error ? e.message : 'Could not unfollow user',
+      )
+    } finally {
+      setFollowBusy(false)
+    }
+  }
 
   const joined = new Date(user.createdAt).toLocaleDateString(undefined, {
     year: 'numeric',
@@ -85,6 +132,35 @@ export function ProfilePage() {
         <div className="field__label">Member since</div>
         <p className="field__value">{joined}</p>
       </div>
+
+      {isSelf ? null : (
+        <div className="profile-actions">
+          {following ? (
+            <button
+              type="button"
+              className="btn-profile"
+              onClick={handleUnfollow}
+              disabled={followBusy}
+            >
+              Unfollow
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="btn-profile"
+              onClick={handleFollow}
+              disabled={followBusy}
+            >
+              Follow
+            </button>
+          )}
+          {followActionError ? (
+            <p className="text-error profile-actions__error" role="alert">
+              {followActionError}
+            </p>
+          ) : null}
+        </div>
+      )}
 
       <section className="section-block" aria-labelledby="profile-videos-heading">
         <h2 id="profile-videos-heading" className="section-title">
@@ -153,13 +229,13 @@ export function ProfilePage() {
         <h2 id="profile-following-heading" className="section-title">
           Following
         </h2>
-        {following.length === 0 ? (
+        {theirFollowing.length === 0 ? (
           <p className="text-muted text-muted--flush">
             Not following anyone yet.
           </p>
         ) : (
           <ul className="person-list">
-            {following.map((p) => (
+            {theirFollowing.map((p) => (
               <li key={p.id} className="person-row">
                 <Link
                   to={`/users/${encodeURIComponent(p.handle)}`}

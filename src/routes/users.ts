@@ -8,6 +8,7 @@ import { getByUserId } from '../db/videos.js'
 import {
   insertFollow,
   deleteFollow,
+  isFollowing,
   listFollowees,
   listFollowers,
 } from '../db/follows.js'
@@ -60,11 +61,13 @@ async function usersRoutes(app: FastifyInstance) {
       }
       const viewerId = request.user.sub
       const isSelf = user.id === viewerId
-      const [videos, followers, following] = await Promise.all([
-        getByUserId(user.id, profileVideosLimit, 0),
-        listFollowers(user.id),
-        listFollowees(user.id),
-      ])
+      const [videos, followers, following, viewerFollowsProfile] =
+        await Promise.all([
+          getByUserId(user.id, profileVideosLimit, 0),
+          listFollowers(user.id),
+          listFollowees(user.id),
+          isSelf ? Promise.resolve(false) : isFollowing(viewerId, user.id),
+        ])
       return {
         user: {
           id: user.id,
@@ -77,6 +80,7 @@ async function usersRoutes(app: FastifyInstance) {
         videos,
         followers,
         following,
+        ...(isSelf ? {} : { isFollowing: viewerFollowsProfile }),
       }
     }
   )

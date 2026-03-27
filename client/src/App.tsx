@@ -2,6 +2,7 @@ import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { Navbar } from './Navbar'
 import { ProtectedRoute } from './ProtectedRoute'
 import { AuthCallbackPage } from './pages/AuthCallbackPage'
+import { DiscoverPage } from './pages/DiscoverPage'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { ProfilePage } from './pages/ProfilePage'
@@ -36,6 +37,14 @@ export function App() {
           element={
             <ProtectedRoute>
               <HomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/discover"
+          element={
+            <ProtectedRoute>
+              <DiscoverPage />
             </ProtectedRoute>
           }
         />

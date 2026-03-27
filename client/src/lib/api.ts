@@ -35,6 +35,40 @@ export type UserProfileResponse = {
   videos: ProfileVideo[]
   followers: FollowListUser[]
   following: FollowListUser[]
+  /** Present when viewing another user's profile */
+  isFollowing?: boolean
+}
+
+export async function followUser(handle: string): Promise<void> {
+  const token = getStoredToken()
+  if (!token) throw new Error('Not signed in')
+  const res = await fetch(
+    `${getApiBase()}/follows/${encodeURIComponent(handle)}`,
+    { method: 'POST', headers: { Authorization: `Bearer ${token}` } },
+  )
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as
+      | { error?: { message?: string } }
+      | null
+    const msg = body?.error?.message ?? `Request failed (${res.status})`
+    throw new Error(msg)
+  }
+}
+
+export async function unfollowUser(handle: string): Promise<void> {
+  const token = getStoredToken()
+  if (!token) throw new Error('Not signed in')
+  const res = await fetch(
+    `${getApiBase()}/follows/${encodeURIComponent(handle)}`,
+    { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } },
+  )
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as
+      | { error?: { message?: string } }
+      | null
+    const msg = body?.error?.message ?? `Request failed (${res.status})`
+    throw new Error(msg)
+  }
 }
 
 export type FeedItem = {
@@ -47,6 +81,33 @@ export type FeedItem = {
 export type FeedPageResponse = {
   items: FeedItem[]
   nextCursor: string | null
+}
+
+/** Matches GET /users/suggestions — ordered by score descending; score is omitted in UI. */
+export type SuggestionEntry = {
+  user: FollowListUser
+  score: number
+}
+
+export async function fetchSuggestions(limit = 50): Promise<SuggestionEntry[]> {
+  const token = getStoredToken()
+  if (!token) {
+    throw new Error('Not signed in')
+  }
+  const params = new URLSearchParams()
+  params.set('limit', String(Math.min(50, Math.max(1, limit))))
+  const res = await fetch(
+    `${getApiBase()}/users/suggestions?${params}`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  )
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as
+      | { error?: { message?: string } }
+      | null
+    const msg = body?.error?.message ?? `Request failed (${res.status})`
+    throw new Error(msg)
+  }
+  return res.json() as Promise<SuggestionEntry[]>
 }
 
 export async function fetchFeed(
