@@ -510,6 +510,21 @@ button.btn-text {
   opacity: 0.75;
 }
 
+.feed-sentinel {
+  height: 2px;
+  margin-top: 0.5rem;
+  pointer-events: none;
+}
+
+.feed-load-more-hint {
+  margin: 1rem 0 0;
+  text-align: center;
+}
+
+.feed-load-more-error {
+  margin: 0 0 1rem;
+}
+
 /* ----- Discover ----- */
 
 .discover {
