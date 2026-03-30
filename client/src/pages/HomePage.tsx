@@ -161,6 +161,9 @@ export function HomePage() {
                 >
                   {item.savedBy.displayName}
                 </Link>
+                {item.occurrenceCount > 1
+                  ? ` + ${item.occurrenceCount - 1} more`
+                  : null}
                 {' · '}
                 <time dateTime={item.cursorTs}>
                   {formatSavedAt(item.cursorTs)}

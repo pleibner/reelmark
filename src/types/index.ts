@@ -31,6 +31,7 @@ export interface Follow {
 export interface FeedItem {
   id: string,
   cursorTs: Date
+  occurrenceCount: number
   video: Video
   savedBy: Pick<User, 'id' | 'handle' | 'displayName' | 'avatarUrl'>
 }

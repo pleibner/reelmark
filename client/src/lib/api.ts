@@ -74,6 +74,7 @@ export async function unfollowUser(handle: string): Promise<void> {
 export type FeedItem = {
   id: string
   cursorTs: string
+  occurrenceCount: number
   video: ProfileVideo
   savedBy: FollowListUser
 }

@@ -76,35 +76,64 @@ export async function getFeedPage(
   const pageSize = Math.min(50, Math.max(1, Number(limit) || 20))
 
   const { rows } = await pool.query(
-    `SELECT
-       fi.id            AS feed_item_id,
-       fi.cursor_ts,
-       fi.cursor_ts::text AS cursor_ts_db_text,
-       v.id             AS video_id,
-       v.user_id,
-       v.youtube_id,
-       v.url,
-       v.title,
-       v.thumbnail_url,
-       v.channel_name,
-       v.duration_secs,
-       v.published_at,
-       v.fetched_at,
-       v.created_at     AS video_created_at,
-       u.id             AS saver_id,
-       u.handle         AS saver_handle,
-       u.display_name   AS saver_display_name,
-       u.avatar_url     AS saver_avatar_url
-     FROM feed_items fi
-     JOIN videos v ON v.id = fi.video_id
-     JOIN users u  ON u.id = v.user_id
-     WHERE fi.owner_user_id = $1
+    `WITH ranked AS (
+       SELECT
+         fi.id              AS feed_item_id,
+         fi.cursor_ts,
+         fi.cursor_ts::text AS cursor_ts_db_text,
+         v.id               AS video_id,
+         v.user_id,
+         v.youtube_id,
+         v.url,
+         v.title,
+         v.thumbnail_url,
+         v.channel_name,
+         v.duration_secs,
+         v.published_at,
+         v.fetched_at,
+         v.created_at       AS video_created_at,
+         u.id               AS saver_id,
+         u.handle           AS saver_handle,
+         u.display_name     AS saver_display_name,
+         u.avatar_url       AS saver_avatar_url,
+         COUNT(*) OVER (PARTITION BY fi.owner_user_id, v.youtube_id) AS occurrence_count,
+         ROW_NUMBER() OVER (
+           PARTITION BY fi.owner_user_id, v.youtube_id
+           ORDER BY fi.cursor_ts DESC, fi.id DESC
+         ) AS rn
+       FROM feed_items fi
+       JOIN videos v ON v.id = fi.video_id
+       JOIN users u ON u.id = v.user_id
+       WHERE fi.owner_user_id = $1::uuid
+     )
+     SELECT
+       feed_item_id,
+       cursor_ts,
+       cursor_ts_db_text,
+       video_id,
+       user_id,
+       youtube_id,
+       url,
+       title,
+       thumbnail_url,
+       channel_name,
+       duration_secs,
+       published_at,
+       fetched_at,
+       video_created_at,
+       saver_id,
+       saver_handle,
+       saver_display_name,
+       saver_avatar_url,
+       occurrence_count
+     FROM ranked
+     WHERE rn = 1
        AND (
          $2::timestamptz IS NULL
-         OR fi.cursor_ts < $2::timestamptz
-         OR (fi.cursor_ts = $2::timestamptz AND fi.id < $3::uuid)
+         OR cursor_ts < $2::timestamptz
+         OR (cursor_ts = $2::timestamptz AND feed_item_id < $3::uuid)
        )
-     ORDER BY fi.cursor_ts DESC, fi.id DESC
+     ORDER BY cursor_ts DESC, feed_item_id DESC
      LIMIT $4`,
     [userId, cursorTs, cursorId, pageSize + 1]
   )
@@ -122,6 +151,7 @@ export async function getFeedPage(
     items: pageRows.map(row => ({
       id: row.feed_item_id as string,
       cursorTs: row.cursor_ts as Date,
+      occurrenceCount: Number(row.occurrence_count),
       video: {
         id: row.video_id as string,
         userId: row.user_id as string,
